@@ -3,27 +3,13 @@ from django.contrib.auth.models import User
 from tastypie.authorization import Authorization
 from tastypie import fields
 from tastypie.resources import ModelResource, ALL, ALL_WITH_RELATIONS
-from blog.models import Entry
-
-
-import json
-from django.core.serializers.json import DjangoJSONEncoder
-from tastypie.serializers import Serializer
-class PrettyJSONSerializer(Serializer):
-    json_indent = 2
-
-    def to_json(self, data, options=None):
-        options = options or {}
-        data = self.to_simple(data, options)
-        return json.dumps(data, cls=DjangoJSONEncoder,
-               sort_keys=True, ensure_ascii=False, indent=self.json_indent)
+from blog.models import Entry, Comment
 
 
 class UserResource(ModelResource):
     class Meta:
         queryset = User.objects.all()
         resource_name = 'user'
-        serializer = PrettyJSONSerializer()        
         excludes = ['email', 'is_active', 'is_staff']
         allowed_methods = ['get']
         filtering = {
@@ -32,15 +18,28 @@ class UserResource(ModelResource):
 
 
 class EntryResource(ModelResource):
-    user = fields.ForeignKey(UserResource, 'user')
+    user = fields.ForeignKey(UserResource, 'user', full=True)
     
     class Meta:
         queryset = Entry.objects.all()
         resource_name = 'entry'
         authorization = Authorization()
-        serializer = PrettyJSONSerializer()
         filtering = {
             'body': ALL,
+            'user': ALL_WITH_RELATIONS,
+            'pub_date': ['exact', 'lt', 'lte', 'gte', 'gt'],
+        }
+
+
+class CommentResource(ModelResource):
+    entry = fields.ForeignKey(EntryResource, 'entry', full=True)
+    user = fields.ForeignKey(UserResource, 'user', full=True)
+
+    class Meta:
+        queryset = Comment.objects.all()
+        resource_name = 'comment'
+        authorization = Authorization()
+        filtering = {
             'user': ALL_WITH_RELATIONS,
             'pub_date': ['exact', 'lt', 'lte', 'gte', 'gt'],
         }
