@@ -15,12 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.conf.urls import url, include
-from blog.api import EntryResource, UserResource
+from blog.api import EntryResource, UserResource, CommentResource
 from tastypie.api import Api
 
 v1_api = Api(api_name='v1')
 v1_api.register(UserResource())
 v1_api.register(EntryResource())
+v1_api.register(CommentResource())
 
 urlpatterns = [
     #url(r'^blog/', include('blog.urls')),
