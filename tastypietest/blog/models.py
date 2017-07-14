@@ -5,7 +5,7 @@ from django.utils.text import slugify
 
 
 class Entry(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     pub_date = models.DateTimeField(default=now)
     title = models.CharField(max_length=200)
     slug = models.SlugField(null=True, blank=True)
@@ -20,3 +20,13 @@ class Entry(models.Model):
             self.slug = slugify(self.title)[:50]
 
         return super(Entry, self).save(*args, **kwargs)
+
+
+class Comment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    entry = models.ForeignKey(Entry, on_delete=models.CASCADE)
+    pub_date = models.DateTimeField(default=now)
+    body = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.body[:40] + "..."
